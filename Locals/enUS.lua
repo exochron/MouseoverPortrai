@@ -1,6 +1,7 @@
-﻿local ADDON_NAME = ...;
+﻿local ADDON_NAME, ADDON = ...
 
-L = CoreFramework:GetModule("Localization", "1.1"):NewLocalization(ADDON_NAME, "enUS");
+ADDON.L = {}
+local L = ADDON.L
 
 L["Click to drag"] = "Click to drag";
 L["Mouseover Portrai: Not possible in combat"] = "Mouseover Portrai: Not possible in combat";

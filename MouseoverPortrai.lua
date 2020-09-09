@@ -132,64 +132,73 @@ function private:UpdateUI(frame)
         self:MakeUnclickable(self.MouseoverFrame:GetName() .. "Debuff" .. (i));
     end
 
-    local currentCast = { UnitCastingInfo("mouseover") };
-    local currentChannel = { UnitChannelInfo("mouseover") };
+    local indexEndTimeMS = 5
 
-    if (#currentCast > 0 and currentCast[8] == self.lastCast[8] and currentCast[6] > self.lastCast[6]) then
-        CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_DELAYED", "mouseover");
+    local indexCastID = 7
+    local indexCastingNotInterruptible  = 8
+    local indexCastingSpellId = 9
+
+    local indexChannelNotInterruptible  = 7
+    local indexChannelSpellId = 8
+
+    local currentCast = { UnitCastingInfo("mouseover") }  -- https://wow.gamepedia.com/API_UnitCastingInfo
+    local currentChannel = { UnitChannelInfo("mouseover") } -- https://wow.gamepedia.com/API_UnitChannelInfo
+
+    if #currentCast > 0 and currentCast[indexCastID] == self.lastCast[indexCastID] and currentCast[indexEndTimeMS] > self.lastCast[indexEndTimeMS] then
+        CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_DELAYED", "mouseover")
     end
 
-    if (#currentChannel > 0 and currentChannel[1] == self.lastChannel[1] and currentChannel[6] > self.lastChannel[6]) then
-        CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_CHANNEL_UPDATE", "mouseover");
+    if #currentChannel > 0 and currentChannel[indexChannelSpellId] == self.lastChannel[indexChannelSpellId] and currentChannel[indexEndTimeMS] > self.lastChannel[indexEndTimeMS] then
+        CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_CHANNEL_UPDATE", "mouseover")
     end
 
-    if (#currentCast > 0 and currentCast[1] == self.lastCast[1] and currentCast[9] ~= self.lastCast[9]) then
-        if (currentCast[9]) then
-            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_INTERRUPTIBLE", "mouseover");
+    if #currentCast > 0 and currentCast[indexCastingSpellId] == self.lastCast[indexCastingSpellId] and currentCast[indexCastingNotInterruptible] ~= self.lastCast[indexCastingNotInterruptible] then
+        if currentCast[indexCastingNotInterruptible] then
+            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_NOT_INTERRUPTIBLE", "mouseover")
         else
-            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_NOT_INTERRUPTIBLE", "mouseover");
+            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_INTERRUPTIBLE", "mouseover")
         end
     end
 
-    if (#currentChannel > 0 and currentChannel[1] == self.lastChannel[1] and currentChannel[8] ~= self.lastChannel[8]) then
-        if (currentChannel[8]) then
-            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_INTERRUPTIBLE", "mouseover");
+    if #currentChannel > 0 and currentChannel[indexChannelSpellId] == self.lastChannel[indexChannelSpellId] and currentChannel[indexChannelNotInterruptible] ~= self.lastChannel[indexChannelNotInterruptible] then
+        if currentChannel[indexChannelNotInterruptible] then
+            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_NOT_INTERRUPTIBLE", "mouseover")
         else
-            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_NOT_INTERRUPTIBLE", "mouseover");
+            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_INTERRUPTIBLE", "mouseover")
         end
     end
 
-    if (#currentCast == 0) then
-        if (#self.lastCast > 0) then
-            if (self.lastCast[6] <= currentTime) then
-                CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_STOP", "mouseover", _, _, self.lastCast[8]);
+    if #currentCast == 0 then
+        if #self.lastCast > 0 then
+            if self.lastCast[indexEndTimeMS] <= currentTime then
+                CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_STOP", "mouseover", _, _, self.lastCast[indexCastID])
             else
-                CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_INTERRUPTED", "mouseover", _, _, self.lastCast[8]);
+                CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_INTERRUPTED", "mouseover", _, _, self.lastCast[indexCastID])
             end
-            self.lastCast = { };
+            self.lastCast = { }
         end
     end
 
-    if (#currentChannel == 0) then
-        if (#self.lastChannel > 0) then
-            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_CHANNEL_STOP", "mouseover");
-            self.lastChannel = { };
+    if #currentChannel == 0 then
+        if #self.lastChannel > 0 then
+            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_CHANNEL_STOP", "mouseover")
+            self.lastChannel = { }
         end
     end
 
-    if (#currentCast > 0) then
-        if (self.lastCast[8] ~= currentCast[8]) then
-            self.lastCast = currentCast;
-            self.lastChannel = { };
-            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_START", "mouseover");
+    if #currentCast > 0 then
+        if self.lastCast[indexCastID] ~= currentCast[indexCastID] then
+            self.lastCast = currentCast
+            self.lastChannel = { }
+            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_START", "mouseover")
         end
     end
 
-    if (#currentChannel > 0) then
-        if (#self.lastChannel == 0) then
-            self.lastChannel = currentChannel;
-            self.lastCast = { };
-            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_CHANNEL_START", "mouseover");
+    if #currentChannel > 0 then
+        if #self.lastChannel == 0 then
+            self.lastChannel = currentChannel
+            self.lastCast = { }
+            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_CHANNEL_START", "mouseover")
         end
     end
 end
