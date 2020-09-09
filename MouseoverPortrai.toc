@@ -1,0 +1,14 @@
+## Interface: 80300
+## Title: Mouseover Portrai
+## Notes: Additional unit frame for mouseover units, similar to the default target or focus frame
+## Author: eXochron, lqpbgjuc
+## Version: @project-version@
+## SavedVariables: MouseoverPortraiSettings
+## X-Curse-Project-ID: 88398
+
+Locals\enUS.lua
+Locals\deDE.lua
+Locals\frFR.lua
+
+MouseoverPortrai.lua
+SlashCommand.lua

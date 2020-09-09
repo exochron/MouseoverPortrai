@@ -1,11 +1,9 @@
-﻿local ADDON_NAME = ...;
+﻿local ADDON_NAME, ADDON = ...
 
-L = CoreFramework:GetModule("Localization", "1.1"):NewLocalization(ADDON_NAME, "deDE");
+if (GetLocale() ~= "deDE") then
+    return
+end
 
-L["Click to drag"] = "Klicken zum Verschieben";
-L["Mouseover Portrai: Not possible in combat"] = "Mouseover Portrai: Im Kampf nicht möglich";
+local L = ADDON.L or {}
 
--- Command-Line
-L["Restores default position for Mouseover Portrai"] = "Stellt die Standardposition von Mouseover Portrai wieder her";
-L["Hides the draggable frame to change position of Mouseover Portrai"] = "Blendet die verschiebare Frame zur Positionierung von Mouseover Portrai aus";
-L["Shows the draggable frame to change position of Mouseover Portrai"] = "Zeigt die verschiebare Frame zur Positionierung von Mouseover Portrai an";
+--@localization(locale="deDE", format="lua_additive_table", handle-unlocalized=comment)@
