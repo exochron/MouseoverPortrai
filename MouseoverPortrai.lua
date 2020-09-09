@@ -154,17 +154,17 @@ function private:UpdateUI(frame)
 
     if #currentCast > 0 and currentCast[indexCastingSpellId] == self.lastCast[indexCastingSpellId] and currentCast[indexCastingNotInterruptible] ~= self.lastCast[indexCastingNotInterruptible] then
         if currentCast[indexCastingNotInterruptible] then
-            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_INTERRUPTIBLE", "mouseover")
-        else
             CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_NOT_INTERRUPTIBLE", "mouseover")
+        else
+            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_INTERRUPTIBLE", "mouseover")
         end
     end
 
     if #currentChannel > 0 and currentChannel[indexChannelSpellId] == self.lastChannel[indexChannelSpellId] and currentChannel[indexChannelNotInterruptible] ~= self.lastChannel[indexChannelNotInterruptible] then
         if currentChannel[indexChannelNotInterruptible] then
-            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_INTERRUPTIBLE", "mouseover")
-        else
             CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_NOT_INTERRUPTIBLE", "mouseover")
+        else
+            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_INTERRUPTIBLE", "mouseover")
         end
     end
 
