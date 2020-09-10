@@ -29,7 +29,7 @@ local FRAME_NAMES = {
 
 local mouseoverFrame, moveableFrame
 
-local function MakeUnclickable(name)
+local function MakeClickThrough(name)
     local frame = _G[name]
     if frame then
         local width, height = frame:GetSize()
@@ -37,31 +37,26 @@ local function MakeUnclickable(name)
     end
 end
 
-local lastCast = { }
-local lastChannel = { }
-local function UpdateUI(frame)
-    local currentTime = GetTime() * 1000
-    TargetFrame_UpdateAuras(frame)
-    TargetFrame_Update(frame)
-    TargetFrame_UpdateRaidTargetIcon(frame)
-
+local function ClickThroughAuras(frame)
     for i = 1, MAX_TARGET_BUFFS do
-        MakeUnclickable(frame:GetName() .. "Buff" .. (i))
+        MakeClickThrough(frame:GetName() .. "Buff" .. i)
     end
 
     for i = 1, frame.maxDebuffs or MAX_TARGET_DEBUFFS do
-        MakeUnclickable(frame:GetName() .. "Debuff" .. (i))
+        MakeClickThrough(frame:GetName() .. "Debuff" .. i)
     end
+end
 
-    local indexEndTimeMS = 5
+local indexEndTimeMS = 5
+local indexCastID = 7
+local indexCastingNotInterruptible = 8
+local indexCastingSpellId = 9
+local indexChannelNotInterruptible = 7
+local indexChannelSpellId = 8
 
-    local indexCastID = 7
-    local indexCastingNotInterruptible = 8
-    local indexCastingSpellId = 9
-
-    local indexChannelNotInterruptible = 7
-    local indexChannelSpellId = 8
-
+local lastCast = { }
+local lastChannel = { }
+local function UpdateCasts()
     local currentCast = { UnitCastingInfo("mouseover") }  -- https://wow.gamepedia.com/API_UnitCastingInfo
     local currentChannel = { UnitChannelInfo("mouseover") } -- https://wow.gamepedia.com/API_UnitChannelInfo
 
@@ -91,7 +86,7 @@ local function UpdateUI(frame)
 
     if #currentCast == 0 then
         if #lastCast > 0 then
-            if lastCast[indexEndTimeMS] <= currentTime then
+            if lastCast[indexEndTimeMS] <= (GetTime() * 1000) then
                 CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_STOP", "mouseover", lastCast[indexCastID])
             else
                 CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_INTERRUPTED", "mouseover", lastCast[indexCastID])
@@ -124,9 +119,31 @@ local function UpdateUI(frame)
     end
 end
 
+local lastGUID
+local function OnUpdate(self, elapsed)
+    local currentGUID = UnitGUID("mouseover")
+
+    if currentGUID ~= lastGUID then
+        TargetFrame_Update(self)
+        if currentGUID then
+            TargetFrame_UpdateRaidTargetIcon(self)
+            ClickThroughAuras(self)
+        end
+    elseif currentGUID then
+        TargetFrame_UpdateAuras(self)
+        ClickThroughAuras(self)
+    end
+
+    if currentGUID then
+        UpdateCasts()
+    end
+
+    lastGUID = currentGUID
+end
+
 local function CreateMouseoverFrame()
     local frame = CreateFrame("Button", "MouseoverFrame", UIParent, "TargetFrameTemplate")
-    frame:SetScript("OnUpdate", UpdateUI)
+    frame:HookScript("OnUpdate", OnUpdate)
     frame:ClearAllPoints()
     frame:SetPoint(unpack(settings.position))
 
@@ -171,7 +188,7 @@ local function CreateMouseoverFrame()
     end
 
     for _, name in pairs(FRAME_NAMES) do
-        MakeUnclickable(name)
+        MakeClickThrough(name)
     end
 
     return frame
@@ -252,7 +269,7 @@ end
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("PLAYER_REGEN_DISABLED")
-frame:SetScript("OnEvent", function(self, event)
+frame:SetScript("OnEvent", function(_, event)
     if event == "PLAYER_LOGIN" then
         mouseoverFrame = CreateMouseoverFrame()
         moveableFrame = CreateMoveableFrame(mouseoverFrame)
