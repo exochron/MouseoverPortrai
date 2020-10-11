@@ -1,12 +1,11 @@
 local _, ADDON = ...
 local L = ADDON.L
 
-local DEFAULT_POSITION = { "TOPLEFT", UIParent, "TOPLEFT", 750, -4 }
+local DEFAULT_POSITION = { "TOPLEFT", nil, "TOPLEFT", 750, -4 }
 
 MouseoverPortraiSettings = MouseoverPortraiSettings or {
     position = DEFAULT_POSITION,
 }
-local settings = MouseoverPortraiSettings
 
 local FRAME_NAMES = {
     "MouseoverFrame",
@@ -27,6 +26,7 @@ local FRAME_NAMES = {
     "MouseoverFrameToTDebuff4",
 }
 
+local isClassic = (select(4, GetBuildInfo())) < 20000
 local mouseoverFrame, moveableFrame
 
 local function MakeClickThrough(name)
@@ -134,7 +134,8 @@ local function OnUpdate(self, elapsed)
         ClickThroughAuras(self)
     end
 
-    if currentGUID then
+    -- classic unit frames don't have cast bars
+    if currentGUID and not isClassic then
         UpdateCasts()
     end
 
@@ -145,7 +146,7 @@ local function CreateMouseoverFrame()
     local frame = CreateFrame("Button", "MouseoverFrame", UIParent, "TargetFrameTemplate")
     frame:HookScript("OnUpdate", OnUpdate)
     frame:ClearAllPoints()
-    frame:SetPoint(unpack(settings.position))
+    frame:SetPoint(unpack(MouseoverPortraiSettings.position))
 
     frame.Show = function()
         frame:SetAlpha(1.0)
@@ -195,7 +196,7 @@ local function CreateMouseoverFrame()
 end
 
 local function CreateMoveableFrame(referenceFrame)
-    local frame = CreateFrame("Frame", nil, UIParent)
+    local frame = CreateFrame("Frame", nil, UIParent, BackdropTemplateMixin and "BackdropTemplate")
     frame:SetFrameLevel(referenceFrame:GetFrameLevel() + 1)
     frame:SetSize(referenceFrame:GetSize())
     frame:ClearAllPoints()
@@ -236,7 +237,7 @@ function ADDON:SetPosition(position)
         return
     end
 
-    settings.position = position
+    MouseoverPortraiSettings.position = position
     mouseoverFrame:ClearAllPoints()
     mouseoverFrame:SetPoint(unpack(position))
 
