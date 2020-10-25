@@ -26,7 +26,7 @@ local FRAME_NAMES = {
     "MouseoverFrameToTDebuff4",
 }
 
-local isClassic = (select(4, GetBuildInfo())) < 20000
+local isClassic = select(4, GetBuildInfo()) < 20000
 local mouseoverFrame, moveableFrame
 
 local function MakeClickThrough(name)
