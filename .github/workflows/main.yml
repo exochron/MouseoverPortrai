@@ -6,6 +6,7 @@ name: Package and release
 # this part can be heavily customized to your liking, like targeting only tags that match a certain word,
 # other branches or even pullrequests.
 on:
+  workflow_dispatch:
   push:
     tags:
       - '**'
@@ -37,13 +38,20 @@ jobs:
           # which is useful for controlling the length of the automated changelog
           fetch-depth: 50
 
-      # once cloned, we just run the GitHub Action for the packager project
-      - name: Package and release
-        uses: BigWigsMods/packager@master
-
       # another example where we supply additional arguments, this example is specifically to release
       # for the Classic version of the game
       - name: Package and release for Classic
         uses: BigWigsMods/packager@master
         with:
-          args: -g 1.13.5
+          args: -g classic
+
+      # another example where we supply additional arguments, this example is specifically to release
+      # for the Burning Crusade version of the game
+      - name: Package and release for BCC
+        uses: BigWigsMods/packager@master
+        with:
+          args: -g bcc
+
+      # once cloned, we just run the GitHub Action for the packager project
+      - name: Package and release
+        uses: BigWigsMods/packager@master
