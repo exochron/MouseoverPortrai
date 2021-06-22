@@ -26,7 +26,8 @@ local FRAME_NAMES = {
     "MouseoverFrameToTDebuff4",
 }
 
-local isClassic = select(4, GetBuildInfo()) < 20000
+local isClassic = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC)
+local isBCC = (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
 local mouseoverFrame, moveableFrame
 
 local function MakeClickThrough(name)
@@ -53,6 +54,12 @@ local indexCastingNotInterruptible = 8
 local indexCastingSpellId = 9
 local indexChannelNotInterruptible = 7
 local indexChannelSpellId = 8
+if isBCC then
+    indexCastingNotInterruptible = 7
+    indexCastingSpellId = 8
+    indexChannelNotInterruptible = 6
+    indexChannelSpellId = 7
+end
 
 local lastCast = { }
 local lastChannel = { }
@@ -86,7 +93,9 @@ local function UpdateCasts()
 
     if #currentCast == 0 then
         if #lastCast > 0 then
-            if lastCast[indexEndTimeMS] <= (GetTime() * 1000) then
+            -- GetTime() isn't precise. cast might show as interrupted, although it was finished
+            local delta = 1000 -- 0.1s
+            if lastCast[indexEndTimeMS] - delta <= (GetTime() * 1000) then
                 CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_STOP", "mouseover", lastCast[indexCastID])
             else
                 CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_INTERRUPTED", "mouseover", lastCast[indexCastID])
