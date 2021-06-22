@@ -42,4 +42,4 @@ jobs:
       - name: Package and release
         uses: BigWigsMods/packager@master
         with:
-          args: -g 9.1,2.5.1,1.13.7
+          args: -g 9.1.0,2.5.1,1.13.7
