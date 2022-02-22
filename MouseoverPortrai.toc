@@ -1,10 +1,11 @@
-## Interface: 90105
+## Interface: 90200
 ## Title: Mouseover Portrai
 ## Notes: Additional unit frame for mouseover units, similar to the default target or focus frame
 ## Author: eXochron, lqpbgjuc
 ## Version: @project-version@
 ## SavedVariables: MouseoverPortraiSettings
 ## X-Curse-Project-ID: 88398
+## X-Wago-ID: J96Eav6g
 
 Locals.lua
 MouseoverPortrai.lua
