@@ -197,6 +197,8 @@ local function CreateMouseoverFrame()
         TargetFrame_CreateSpellbar(frame, "UPDATE_MOUSEOVER_UNIT")
         TargetFrame_CreateTargetofTarget(frame, "mouseovertarget")
 
+        UnitFrameManaBar_Initialize("mouseover", _G["MouseoverFrameManaBar"], _G["MouseoverFrameTextureFrameManaBarText"], true)
+
         MouseoverFrameToT:Show()
         MouseoverFrameToT.Show = function()
             MouseoverFrameToT:SetAlpha(1.0)
