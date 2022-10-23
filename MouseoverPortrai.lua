@@ -7,44 +7,47 @@ MouseoverPortraiSettings = MouseoverPortraiSettings or {
     position = DEFAULT_POSITION,
 }
 
-local FRAME_NAMES = {
-    "MouseoverFrame",
-    "MouseoverFrameTextureFrame",
-    "MouseoverFrameHealthBar",
-    "MouseoverFrameManaBar",
-    "MouseoverFrameBuffs",
-    "MouseoverFrameDebuffs",
-    "MouseoverFrameNumericalThreat",
-    "MouseoverFrameSpellBar",
-    "MouseoverFrameToT",
-    "MouseoverFrameToTTextureFrame",
-    "MouseoverFrameToTHealthBar",
-    "MouseoverFrameToTManaBar",
-    "MouseoverFrameToTDebuff1",
-    "MouseoverFrameToTDebuff2",
-    "MouseoverFrameToTDebuff3",
-    "MouseoverFrameToTDebuff4",
-}
-
 local isClassic = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC)
-local isBCC = (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
 local mouseoverFrame, moveableFrame
 
-local function MakeClickThrough(name)
-    local frame = _G[name]
+local function MakeClickThrough(frame)
     if frame then
         local width, height = frame:GetSize()
         frame:SetHitRectInsets(width, 0, height, 0)
     end
 end
+local function MakeAllClickThrough(frame)
+    MakeClickThrough(frame)
+    for _, child in ipairs({ frame:GetChildren() })  do
+        MakeAllClickThrough(child)
+    end
+end
 
 local function ClickThroughAuras(frame)
-    for i = 1, MAX_TARGET_BUFFS do
-        MakeClickThrough(frame:GetName() .. "Buff" .. i)
-    end
+    if frame.auraPools then -- >= 10.0
+        for aura in frame.auraPools:EnumerateActive() do
+            MakeClickThrough(aura)
+            aura:SetScript("OnEnter", function() end)
+            aura:SetScript("OnLeave", function() end)
+        end
+    else
+        for i = 1, MAX_TARGET_BUFFS do
+            local aura = _G[frame:GetName() .. "Buff" .. i]
+            MakeClickThrough(aura)
+            if aura then
+                aura:SetScript("OnEnter", function() end)
+                aura:SetScript("OnLeave", function() end)
+            end
+        end
 
-    for i = 1, frame.maxDebuffs or MAX_TARGET_DEBUFFS do
-        MakeClickThrough(frame:GetName() .. "Debuff" .. i)
+        for i = 1, frame.maxDebuffs or MAX_TARGET_DEBUFFS do
+            local aura = _G[frame:GetName() .. "Debuff" .. i]
+            MakeClickThrough(aura)
+            if aura then
+                aura:SetScript("OnEnter", function() end)
+                aura:SetScript("OnLeave", function() end)
+            end
+        end
     end
 end
 
@@ -54,40 +57,34 @@ local indexCastingNotInterruptible = 8
 local indexCastingSpellId = 9
 local indexChannelNotInterruptible = 7
 local indexChannelSpellId = 8
-if isBCC then
-    indexCastingNotInterruptible = 7
-    indexCastingSpellId = 8
-    indexChannelNotInterruptible = 6
-    indexChannelSpellId = 7
-end
 
 local lastCast = { }
 local lastChannel = { }
-local function UpdateCasts()
+local function UpdateCasts(spellbar)
     local currentCast = { UnitCastingInfo("mouseover") }  -- https://wow.gamepedia.com/API_UnitCastingInfo
     local currentChannel = { UnitChannelInfo("mouseover") } -- https://wow.gamepedia.com/API_UnitChannelInfo
 
     if #currentCast > 0 and currentCast[indexCastID] == lastCast[indexCastID] and currentCast[indexEndTimeMS] > lastCast[indexEndTimeMS] then
-        CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_DELAYED", "mouseover")
+        Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_DELAYED", "mouseover")
     end
 
     if #currentChannel > 0 and currentChannel[indexChannelSpellId] == lastChannel[indexChannelSpellId] and currentChannel[indexEndTimeMS] > lastChannel[indexEndTimeMS] then
-        CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_CHANNEL_UPDATE", "mouseover")
+        Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_CHANNEL_UPDATE", "mouseover")
     end
 
     if #currentCast > 0 and currentCast[indexCastingSpellId] == lastCast[indexCastingSpellId] and currentCast[indexCastingNotInterruptible] ~= lastCast[indexCastingNotInterruptible] then
         if currentCast[indexCastingNotInterruptible] then
-            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_NOT_INTERRUPTIBLE", "mouseover")
+            Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_NOT_INTERRUPTIBLE", "mouseover")
         else
-            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_INTERRUPTIBLE", "mouseover")
+            Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_INTERRUPTIBLE", "mouseover")
         end
     end
 
     if #currentChannel > 0 and currentChannel[indexChannelSpellId] == lastChannel[indexChannelSpellId] and currentChannel[indexChannelNotInterruptible] ~= lastChannel[indexChannelNotInterruptible] then
         if currentChannel[indexChannelNotInterruptible] then
-            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_NOT_INTERRUPTIBLE", "mouseover")
+            Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_NOT_INTERRUPTIBLE", "mouseover")
         else
-            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_INTERRUPTIBLE", "mouseover")
+            Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_INTERRUPTIBLE", "mouseover")
         end
     end
 
@@ -96,9 +93,9 @@ local function UpdateCasts()
             -- GetTime() isn't precise. cast might show as interrupted, although it was finished
             local delta = 1000 -- 0.1s
             if lastCast[indexEndTimeMS] - delta <= (GetTime() * 1000) then
-                CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_STOP", "mouseover", lastCast[indexCastID])
+                Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_STOP", "mouseover", lastCast[indexCastID])
             else
-                CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_INTERRUPTED", "mouseover", lastCast[indexCastID])
+                Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_INTERRUPTED", "mouseover", lastCast[indexCastID])
             end
             lastCast = { }
         end
@@ -106,7 +103,7 @@ local function UpdateCasts()
 
     if #currentChannel == 0 then
         if #lastChannel > 0 then
-            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_CHANNEL_STOP", "mouseover")
+            Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_CHANNEL_STOP", "mouseover")
             lastChannel = { }
         end
     end
@@ -115,7 +112,7 @@ local function UpdateCasts()
         if lastCast[indexCastID] ~= currentCast[indexCastID] then
             lastCast = currentCast
             lastChannel = { }
-            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_START", "mouseover")
+            Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_START", "mouseover")
         end
     end
 
@@ -123,29 +120,38 @@ local function UpdateCasts()
         if #lastChannel == 0 then
             lastChannel = currentChannel
             lastCast = { }
-            CastingBarFrame_OnEvent(MouseoverFrameSpellBar, "UNIT_SPELLCAST_CHANNEL_START", "mouseover")
+            Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_CHANNEL_START", "mouseover")
         end
     end
 end
 
 local lastGUID
-local function OnUpdate(self, elapsed)
+local function OnUpdate(self)
     local currentGUID = UnitGUID("mouseover")
 
     if currentGUID ~= lastGUID then
-        TargetFrame_Update(self)
-        if currentGUID then
-            TargetFrame_UpdateRaidTargetIcon(self)
-            ClickThroughAuras(self)
+        if self.Update then -- >= 10.0
+            self:Update()
+        elseif TargetFrame_Update then
+            TargetFrame_Update(self)
         end
-    elseif currentGUID then
-        TargetFrame_UpdateAuras(self)
-        ClickThroughAuras(self)
+        if currentGUID and TargetFrame_UpdateRaidTargetIcon then
+            TargetFrame_UpdateRaidTargetIcon(self)
+        end
     end
 
-    -- classic unit frames don't have cast bars
-    if currentGUID and not isClassic then
-        UpdateCasts()
+    if currentGUID then
+        if self.UpdateAuras then -- >= 10.0
+            self:UpdateAuras()
+        elseif TargetFrame_UpdateAuras then
+            TargetFrame_UpdateAuras(self)
+        end
+        ClickThroughAuras(self)
+
+        -- classic unit frames don't have cast bars
+        if not isClassic then
+            UpdateCasts(self.spellbar)
+        end
     end
 
     lastGUID = currentGUID
@@ -153,10 +159,18 @@ end
 
 local function CreateMouseoverFrame()
     local frame = CreateFrame("Button", "MouseoverFrame", UIParent, "TargetFrameTemplate")
+    if TargetFrameMixin then -- >= 10.0
+        frame = Mixin(frame, TargetFrameMixin)
+    end
+
     frame:HookScript("OnUpdate", OnUpdate)
+    frame:SetScript("OnEnter", function() end)
+    frame:SetScript("OnLeave", function() end)
+
     frame:ClearAllPoints()
     frame:SetPoint(unpack(MouseoverPortraiSettings.position))
 
+    -- overwrite show/hide to be usable while in combat
     frame.Show = function()
         frame:SetAlpha(1.0)
     end
@@ -167,6 +181,7 @@ local function CreateMouseoverFrame()
         return frame:GetAlpha() > 0
     end
 
+    frame.frameType = "Target" -- for TargetFrameMixin
     frame.noTextPrefix = true
     frame.showLevel = true
     frame.showPVP = true
@@ -176,30 +191,50 @@ local function CreateMouseoverFrame()
     frame.showClassification = true
     frame.showAuraCount = true
 
-    TargetFrame_OnLoad(frame, "mouseover")
-    TargetFrame_CreateSpellbar(frame, "UPDATE_MOUSEOVER_UNIT")
-    TargetFrame_CreateTargetofTarget(frame, "mouseovertarget")
+    if TargetFrame_OnLoad then
+        -- <10.0
+        TargetFrame_OnLoad(frame, "mouseover")
+        TargetFrame_CreateSpellbar(frame, "UPDATE_MOUSEOVER_UNIT")
+        TargetFrame_CreateTargetofTarget(frame, "mouseovertarget")
 
-    MouseoverFrameToT:Show()
-    MouseoverFrameToT.Show = function()
-        MouseoverFrameToT:SetAlpha(1.0)
-    end
-    MouseoverFrameToT.Hide = function()
-        MouseoverFrameToT:SetAlpha(0.0)
-        for i = 1, 4 do
-            local debuffFrame = _G[frame:GetName() .. "ToTDebuff" .. i]
-            if debuffFrame then
-                debuffFrame:Hide()
+        MouseoverFrameToT:Show()
+        MouseoverFrameToT.Show = function()
+            MouseoverFrameToT:SetAlpha(1.0)
+        end
+        MouseoverFrameToT.Hide = function()
+            MouseoverFrameToT:SetAlpha(0.0)
+            for i = 1, 4 do
+                local debuffFrame = _G[frame:GetName() .. "ToTDebuff" .. i]
+                if debuffFrame then
+                    debuffFrame:Hide()
+                end
             end
         end
-    end
-    MouseoverFrameToT.IsShown = function()
-        return MouseoverFrameToT:GetAlpha() > 0
+        MouseoverFrameToT.IsShown = function()
+            return MouseoverFrameToT:GetAlpha() > 0
+        end
+    elseif frame.OnLoad then
+        -- >= 10.0
+        frame:OnLoad("mouseover");
+
+        UnitFrameManaBar_Initialize("mouseover", frame.manabar, frame.manabar.ManaBarText, true)
+
+        frame:CreateSpellbar("UPDATE_MOUSEOVER_UNIT");
+        frame:CreateTargetofTarget("mouseovertarget");
+        frame:RegisterEvent("UPDATE_MOUSEOVER_UNIT");
+        frame.threatNumericIndicator:SetScript("OnShow", function() frame:UpdateAuras() end);
+        frame.threatNumericIndicator:SetScript("OnHide", function() frame:UpdateAuras() end);
+
+        frame:HookScript("OnEvent", function(self, event, ...)
+            if event == "UPDATE_MOUSEOVER_UNIT" then
+                self:Update()
+                self:UpdateRaidTargetIcon(self)
+                self:UpdateAuras()
+            end
+        end)
     end
 
-    for _, name in pairs(FRAME_NAMES) do
-        MakeClickThrough(name)
-    end
+    MakeAllClickThrough(frame)
 
     return frame
 end
