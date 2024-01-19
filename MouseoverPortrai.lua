@@ -61,30 +61,32 @@ local indexChannelSpellId = 8
 local lastCast = { }
 local lastChannel = { }
 local function UpdateCasts(spellbar)
-    local currentCast = { UnitCastingInfo("mouseover") }  -- https://wow.gamepedia.com/API_UnitCastingInfo
-    local currentChannel = { UnitChannelInfo("mouseover") } -- https://wow.gamepedia.com/API_UnitChannelInfo
+    local currentCast = { UnitCastingInfo("mouseover") }  -- https://warcraft.wiki.gg/wiki/API_UnitCastingInfo
+    local currentChannel = { UnitChannelInfo("mouseover") } -- https://warcraft.wiki.gg/wiki/API_UnitChannelInfo
+
+    local OnEvent = Target_Spellbar_OnEvent or spellbar.OnEvent
 
     if #currentCast > 0 and currentCast[indexCastID] == lastCast[indexCastID] and currentCast[indexEndTimeMS] > lastCast[indexEndTimeMS] then
-        Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_DELAYED", "mouseover")
+        OnEvent(spellbar, "UNIT_SPELLCAST_DELAYED", "mouseover")
     end
 
     if #currentChannel > 0 and currentChannel[indexChannelSpellId] == lastChannel[indexChannelSpellId] and currentChannel[indexEndTimeMS] > lastChannel[indexEndTimeMS] then
-        Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_CHANNEL_UPDATE", "mouseover")
+        OnEvent(spellbar, "UNIT_SPELLCAST_CHANNEL_UPDATE", "mouseover")
     end
 
     if #currentCast > 0 and currentCast[indexCastingSpellId] == lastCast[indexCastingSpellId] and currentCast[indexCastingNotInterruptible] ~= lastCast[indexCastingNotInterruptible] then
         if currentCast[indexCastingNotInterruptible] then
-            Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_NOT_INTERRUPTIBLE", "mouseover")
+            OnEvent(spellbar, "UNIT_SPELLCAST_NOT_INTERRUPTIBLE", "mouseover")
         else
-            Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_INTERRUPTIBLE", "mouseover")
+            OnEvent(spellbar, "UNIT_SPELLCAST_INTERRUPTIBLE", "mouseover")
         end
     end
 
     if #currentChannel > 0 and currentChannel[indexChannelSpellId] == lastChannel[indexChannelSpellId] and currentChannel[indexChannelNotInterruptible] ~= lastChannel[indexChannelNotInterruptible] then
         if currentChannel[indexChannelNotInterruptible] then
-            Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_NOT_INTERRUPTIBLE", "mouseover")
+            OnEvent(spellbar, "UNIT_SPELLCAST_NOT_INTERRUPTIBLE", "mouseover")
         else
-            Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_INTERRUPTIBLE", "mouseover")
+            OnEvent(spellbar, "UNIT_SPELLCAST_INTERRUPTIBLE", "mouseover")
         end
     end
 
@@ -93,9 +95,9 @@ local function UpdateCasts(spellbar)
             -- GetTime() isn't precise. cast might show as interrupted, although it was finished
             local delta = 1000 -- 0.1s
             if lastCast[indexEndTimeMS] - delta <= (GetTime() * 1000) then
-                Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_STOP", "mouseover", lastCast[indexCastID])
+                OnEvent(spellbar, "UNIT_SPELLCAST_STOP", "mouseover", lastCast[indexCastID])
             else
-                Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_INTERRUPTED", "mouseover", lastCast[indexCastID])
+                OnEvent(spellbar, "UNIT_SPELLCAST_INTERRUPTED", "mouseover", lastCast[indexCastID])
             end
             lastCast = { }
         end
@@ -103,7 +105,7 @@ local function UpdateCasts(spellbar)
 
     if #currentChannel == 0 then
         if #lastChannel > 0 then
-            Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_CHANNEL_STOP", "mouseover")
+            OnEvent(spellbar, "UNIT_SPELLCAST_CHANNEL_STOP", "mouseover")
             lastChannel = { }
         end
     end
@@ -112,7 +114,7 @@ local function UpdateCasts(spellbar)
         if lastCast[indexCastID] ~= currentCast[indexCastID] then
             lastCast = currentCast
             lastChannel = { }
-            Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_START", "mouseover")
+            OnEvent(spellbar, "UNIT_SPELLCAST_START", "mouseover")
         end
     end
 
@@ -120,7 +122,7 @@ local function UpdateCasts(spellbar)
         if #lastChannel == 0 then
             lastChannel = currentChannel
             lastCast = { }
-            Target_Spellbar_OnEvent(spellbar, "UNIT_SPELLCAST_CHANNEL_START", "mouseover")
+            OnEvent(spellbar, "UNIT_SPELLCAST_CHANNEL_START", "mouseover")
         end
     end
 end
