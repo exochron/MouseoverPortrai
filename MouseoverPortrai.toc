@@ -1,4 +1,4 @@
-## Interface: 110005,110007,40401,11505
+## Interface: 1100100,40402,11506
 ## Title: Mouseover Portrai
 ## Notes: Additional unit frame for mouseover units, similar to the default target or focus frame
 ## Author: eXochron, lqpbgjuc
