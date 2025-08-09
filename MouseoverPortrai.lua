@@ -7,7 +7,6 @@ MouseoverPortraiSettings = MouseoverPortraiSettings or {
     position = DEFAULT_POSITION,
 }
 
-local isClassic = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC)
 local mouseoverFrame, moveableFrame
 
 local function MakeClickThrough(frame)
@@ -137,12 +136,14 @@ local function OnUpdate(self)
         elseif TargetFrame_Update then
             TargetFrame_Update(self)
         end
-        if currentGUID and TargetFrame_UpdateRaidTargetIcon then
-            TargetFrame_UpdateRaidTargetIcon(self)
-        end
     end
 
     if currentGUID then
+        if self.UpdateRaidTargetIcon then
+            self:UpdateRaidTargetIcon(self)
+        elseif TargetFrame_UpdateRaidTargetIcon then
+            TargetFrame_UpdateRaidTargetIcon(self)
+        end
         if self.UpdateAuras then -- >= 10.0
             self:UpdateAuras()
         elseif TargetFrame_UpdateAuras then
@@ -150,93 +151,26 @@ local function OnUpdate(self)
         end
         ClickThroughAuras(self)
 
-        -- classic unit frames don't have cast bars
-        if not isClassic then
-            UpdateCasts(self.spellbar)
-        end
+        UpdateCasts(self.spellbar)
     end
 
     lastGUID = currentGUID
 end
 
-local function CreateMouseoverFrame()
-    local frame = CreateFrame("Button", "MouseoverFrame", UIParent, "TargetFrameTemplate")
-    if TargetFrameMixin then -- >= 10.0
-        frame = Mixin(frame, TargetFrameMixin)
-    end
+local function InitMouseoverFrame()
+    local frame = _G["MouseoverFrame"]
 
     frame:HookScript("OnUpdate", OnUpdate)
     frame:SetScript("OnEnter", function() end)
     frame:SetScript("OnLeave", function() end)
+    frame:SetScript("OnClick", function() end)
+    frame:SetScript("OnDragStart", function() end)
+    frame:SetScript("OnDragStop", function() end)
+    frame:SetScript("OnShow", function() end)
+    frame:SetScript("OnHide", function() end)
 
     frame:ClearAllPoints()
     frame:SetPoint(unpack(MouseoverPortraiSettings.position))
-
-    -- overwrite show/hide to be usable while in combat
-    frame.Show = function()
-        frame:SetAlpha(1.0)
-    end
-    frame.Hide = function()
-        frame:SetAlpha(0.0)
-    end
-    frame.IsShown = function()
-        return frame:GetAlpha() > 0
-    end
-
-    frame.frameType = "Target" -- for TargetFrameMixin
-    frame.noTextPrefix = true
-    frame.showLevel = true
-    frame.showPVP = true
-    frame.showLeader = true
-    frame.showThreat = true
-    frame.showPortrait = true
-    frame.showClassification = true
-    frame.showAuraCount = true
-
-    if TargetFrame_OnLoad then
-        -- <10.0
-        TargetFrame_OnLoad(frame, "mouseover")
-        TargetFrame_CreateSpellbar(frame, "UPDATE_MOUSEOVER_UNIT")
-        TargetFrame_CreateTargetofTarget(frame, "mouseovertarget")
-
-        UnitFrameManaBar_Initialize("mouseover", _G["MouseoverFrameManaBar"], _G["MouseoverFrameTextureFrameManaBarText"], true)
-
-        MouseoverFrameToT:Show()
-        MouseoverFrameToT.Show = function()
-            MouseoverFrameToT:SetAlpha(1.0)
-        end
-        MouseoverFrameToT.Hide = function()
-            MouseoverFrameToT:SetAlpha(0.0)
-            for i = 1, 4 do
-                local debuffFrame = _G[frame:GetName() .. "ToTDebuff" .. i]
-                if debuffFrame then
-                    debuffFrame:Hide()
-                end
-            end
-        end
-        MouseoverFrameToT.IsShown = function()
-            return MouseoverFrameToT:GetAlpha() > 0
-        end
-    elseif frame.OnLoad then
-        -- >= 10.0
-        frame:OnLoad("mouseover");
-
-        UnitFrameManaBar_Initialize("mouseover", frame.manabar, frame.manabar.ManaBarText, true)
-
-        frame:CreateSpellbar("UPDATE_MOUSEOVER_UNIT");
-        frame:CreateTargetofTarget("mouseovertarget");
-        frame:RegisterEvent("UPDATE_MOUSEOVER_UNIT");
-        frame.threatNumericIndicator:SetScript("OnShow", function() frame:UpdateAuras() end);
-        frame.threatNumericIndicator:SetScript("OnHide", function() frame:UpdateAuras() end);
-
-        frame:HookScript("OnEvent", function(self, event, ...)
-            if event == "UPDATE_MOUSEOVER_UNIT" then
-                self:Update()
-                self:UpdateRaidTargetIcon(self)
-                self:UpdateAuras()
-            end
-        end)
-    end
 
     MakeAllClickThrough(frame)
 
@@ -320,8 +254,20 @@ frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("PLAYER_REGEN_DISABLED")
 frame:SetScript("OnEvent", function(_, event)
     if event == "PLAYER_LOGIN" then
-        mouseoverFrame = CreateMouseoverFrame()
+        mouseoverFrame = InitMouseoverFrame()
         moveableFrame = CreateMoveableFrame(mouseoverFrame)
+
+        -- CVarCallbackRegistry caches an therefore transports taint into the original TargetFrame
+        hooksecurefunc(CVarCallbackRegistry, "GetCVarValue", function(self, cvar)
+            if cvar == "showTargetOfTarget" and not issecurevariable(self.cvarValueCache, cvar) then
+                if self.ClearCache then
+                    self:ClearCache(cvar)
+                else -- classic
+                    local data = {textures = self.cvarValueCache}
+                    TextureLoadingGroupMixin.RemoveTexture(data, cvar)
+                end
+            end
+        end)
     elseif event == "PLAYER_REGEN_DISABLED" then
         ADDON:LockFrame()
     end

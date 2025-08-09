@@ -1,0 +1,325 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\..\Blizzard_SharedXML\UI.xsd">
+
+    <!-- all from Blizzard_UnitFrame/Vanilla/TargetFrame.lua -->
+
+    <!-- based on TargetFrameTemplate but stripped of SecureUnitButtonTemplate -->
+    <Button name="MouseoverFrameTemplate" frameStrata="LOW" toplevel="true" parent="UIParent" virtual="true">
+        <Size x="232" y="100"/>
+        <HitRectInsets>
+            <AbsInset left="0" right="40" top="10" bottom="20"/>
+        </HitRectInsets>
+        <Layers>
+            <Layer level="BACKGROUND">
+                <Texture name="$parentBackground" parentKey="Background">
+                    <Size x="119" y="41"/>
+                    <Anchors>
+                        <Anchor point="BOTTOMLEFT" x="7" y="35"/>
+                    </Anchors>
+                    <Color r="0" g="0" b="0" a="0.5"/>
+                </Texture>
+            </Layer>
+            <Layer level="BORDER">
+                <Texture name="$parentNameBackground" file="Interface\TargetingFrame\UI-TargetingFrame-LevelBackground" parentKey="nameBackground">
+                    <Size x="119" y="19"/>
+                    <Anchors>
+                        <Anchor point="TOPRIGHT" x="-106" y="-22"/>
+                    </Anchors>
+                </Texture>
+                <Texture name="$parentPortrait">
+                    <Size x="64" y="64"/>
+                    <Anchors>
+                        <Anchor point="TOPRIGHT" x="-42" y="-12"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+        </Layers>
+        <Frames>
+            <Frame name="$parentTextureFrame" parentKey="textureFrame" setAllPoints="true">
+                <Layers>
+                    <Layer level="BACKGROUND">
+                        <Texture name="$parentTexture" parentKey="texture" file="Interface\TargetingFrame\UI-TargetingFrame">
+                            <TexCoords left="0.09375" right="1.0" top="0" bottom="0.78125"/>
+                        </Texture>
+                        <FontString name="$parentName" inherits="GameFontNormalSmall">
+                            <Size x="100" y="10"/>
+                            <Anchors>
+                                <Anchor point="CENTER" x="-50" y="19"/>
+                            </Anchors>
+                        </FontString>
+                        <FontString name="$parentLevelText" inherits="GameNormalNumberFont" justifyH="CENTER">
+                            <!--WARNING:: This is re-anchored in code.-->
+                            <Anchors>
+                                <Anchor point="CENTER" x="63" y="-16"/>
+                            </Anchors>
+                        </FontString>
+                        <FontString name="$parentDeadText" inherits="GameFontNormalSmall" text="DEAD">
+                            <Anchors>
+                                <Anchor point="CENTER" x="-50" y="3"/>
+                            </Anchors>
+                        </FontString>
+                        <FontString name="$parentUnconsciousText" inherits="GameFontNormalSmall" text="UNCONSCIOUS">
+                            <Anchors>
+                                <Anchor point="CENTER" x="-50" y="3"/>
+                            </Anchors>
+                        </FontString>
+                    </Layer>
+                    <Layer level="ARTWORK">
+                        <Texture name="$parentHighLevelTexture" file="Interface\TargetingFrame\UI-TargetingFrame-Skull">
+                            <Size x="16" y="16"/>
+                            <Anchors>
+                                <Anchor point="CENTER" relativeTo="$parentLevelText" x="0" y="0"/>
+                            </Anchors>
+                        </Texture>
+                        <Texture name="$parentLeaderIcon" file="Interface\GroupFrame\UI-Group-LeaderIcon" hidden="true">
+                            <Size x="16" y="16"/>
+                            <Anchors>
+                                <Anchor point="TOPRIGHT" x="-44" y="-10"/>
+                            </Anchors>
+                        </Texture>
+                        <Texture name="$parentPVPIcon" hidden="true">
+                            <Size x="64" y="64"/>
+                            <Anchors>
+                                <Anchor point="TOPRIGHT" x="3" y="-20"/>
+                            </Anchors>
+                        </Texture>
+                        <Texture name="$parentPrestigePortrait" hidden="true">
+                            <Size x="50" y="52"/>
+                            <Anchors>
+                                <Anchor point="TOPRIGHT" x="-15" y="-13"/>
+                            </Anchors>
+                        </Texture>
+                        <Texture name="$parentRaidTargetIcon" file="Interface\TargetingFrame\UI-RaidTargetingIcons" hidden="true">
+                            <Size x="26" y="26"/>
+                            <Anchors>
+                                <Anchor point="CENTER" relativePoint="TOPRIGHT" x="-73" y="-14"/>
+                            </Anchors>
+                        </Texture>
+                        <Texture name="$parentQuestIcon" file="Interface\TargetingFrame\PortraitQuestBadge" hidden="true">
+                            <Size x="32" y="32"/>
+                            <Anchors>
+                                <Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="-120" y="-12"/>
+                            </Anchors>
+                        </Texture>
+                        <Texture name="$parentPetBattleIcon" file="Interface\TargetingFrame\PetBadge-Beast" hidden="true">
+                            <Size x="32" y="32"/>
+                            <Anchors>
+                                <Anchor point="CENTER" relativePoint="RIGHT" x="-44" y="10"/>
+                            </Anchors>
+                        </Texture>
+                    </Layer>
+                    <Layer level="ARTWORK" textureSubLevel="1">
+                        <Texture name="$parentPrestigeBadge" hidden="true">
+                            <Size x="30" y="30"/>
+                            <Anchors>
+                                <Anchor point="CENTER" relativeTo="$parentPrestigePortrait" relativePoint="CENTER"/>
+                            </Anchors>
+                        </Texture>
+                    </Layer>
+                </Layers>
+            </Frame>
+            <StatusBar name="$parentHealthBar" inherits="TextStatusBar" useParentLevel="true">
+                <Size x="119" y="12"/>
+                <Anchors>
+                    <Anchor point="TOPRIGHT" x="-106" y="-41"/>
+                </Anchors>
+                <Scripts>
+                    <OnLoad>
+                        TextStatusBar_Initialize(self);
+                        self.textLockable = 1;
+                        self.cvar = "statusText";
+                        self.cvarLabel = "STATUS_TEXT_TARGET";
+                        self.zeroText = "";
+                    </OnLoad>
+                    <OnValueChanged>
+                        UnitFrameHealthBar_OnValueChanged(self, value);
+                        TargetHealthCheck(self, value);
+                    </OnValueChanged>
+                </Scripts>
+                <BarTexture file="Interface\TargetingFrame\UI-StatusBar"/>
+            </StatusBar>
+            <StatusBar name="$parentManaBar" inherits="TextStatusBar" useParentLevel="true">
+                <Size x="119" y="12"/>
+                <Anchors>
+                    <Anchor point="TOPRIGHT" x="-106" y="-52"/>
+                </Anchors>
+                <Scripts>
+                    <OnLoad>
+                        TextStatusBar_Initialize(self);
+                        self.textLockable = 1;
+                        self.cvar = "statusText";
+                        self.cvarLabel = "STATUS_TEXT_TARGET";
+                    </OnLoad>
+                </Scripts>
+                <BarTexture file="Interface\TargetingFrame\UI-StatusBar"/>
+                <BarColor r="0" g="0" b="1.0"/>
+            </StatusBar>
+            <Frame name="$parentBuffs" parentKey="buffs" hidden="true">
+                <Size x="10" y="10"/>
+            </Frame>
+            <Frame name="$parentDebuffs" parentKey="debuffs" hidden="true">
+                <Size x="10" y="10"/>
+            </Frame>
+        </Frames>
+        <Scripts>
+            <OnEvent function="TargetFrame_OnEvent"/>
+            <OnUpdate>
+                TargetFrame_OnUpdate(self, elapsed);
+                TargetFrame_HealthUpdate(self, elapsed, self.unit);
+            </OnUpdate>
+            <OnHide function="TargetFrame_OnHide"/>
+            <OnEnter function="UnitFrame_OnEnter"/>
+            <OnLeave function="UnitFrame_OnLeave"/>
+        </Scripts>
+    </Button>
+
+    <!-- based on TargetofTargetFrameTemplate but stripped of SecureUnitButtonTemplate -->
+    <Button name="MouseoverTargetFrameTemplate" movable="true" virtual="true" hidden="true">
+        <Size x="93" y="45"/>
+        <Anchors>
+            <Anchor point="BOTTOMRIGHT" x="-35" y="-10"/>
+        </Anchors>
+        <Layers>
+            <Layer level="BACKGROUND">
+                <Texture name="$parentBackground" parentKey="background">
+                    <Size x="46" y="15"/>
+                    <Anchors>
+                        <Anchor point="BOTTOMLEFT" x="42" y="13"/>
+                    </Anchors>
+                    <Color r="0" g="0" b="0" a="0.5"/>
+                </Texture>
+            </Layer>
+            <Layer level="BORDER">
+                <Texture name="$parentPortrait">
+                    <Size x="35" y="35"/>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="6" y="-6"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+        </Layers>
+        <Frames>
+            <Frame name="$parentTextureFrame" setAllPoints="true">
+                <Layers>
+                    <Layer level="BORDER">
+                        <Texture name="$parentTexture" file="Interface\TargetingFrame\UI-TargetofTargetFrame">
+                            <TexCoords left="0.015625" right="0.7265625" top="0" bottom="0.703125"/>
+                        </Texture>
+                        <FontString name="$parentName" inherits="GameFontNormalSmall" justifyH="LEFT">
+                            <Size x="100" y="10"/>
+                            <Anchors>
+                                <Anchor point="BOTTOMLEFT" x="42" y="2"/>
+                            </Anchors>
+                        </FontString>
+                        <FontString name="$parentDeadText" inherits="GameFontNormalSmall" text="DEAD">
+                            <Anchors>
+                                <Anchor point="LEFT" x="48" y="1"/>
+                            </Anchors>
+                        </FontString>
+                        <FontString name="$parentUnconsciousText" inherits="GameFontNormalSmall" justifyH="LEFT" text="UNCONSCIOUS">
+                            <Anchors>
+                                <Anchor point="LEFT" x="48" y="1"/>
+                            </Anchors>
+                        </FontString>
+                    </Layer>
+                </Layers>
+                <Scripts>
+                    <OnLoad function="RaiseFrameLevel"/>
+                </Scripts>
+            </Frame>
+            <StatusBar name="$parentHealthBar" inherits="TextStatusBar">
+                <Size x="46" y="7"/>
+                <Anchors>
+                    <Anchor point="TOPRIGHT" x="-2" y="-15"/>
+                </Anchors>
+                <Scripts>
+                    <OnValueChanged>
+                        TargetofTargetHealthCheck(self:GetParent());
+                    </OnValueChanged>
+                </Scripts>
+                <BarTexture file="Interface\TargetingFrame\UI-StatusBar"/>
+                <BarColor r="0" g="1.0" b="0"/>
+            </StatusBar>
+            <StatusBar name="$parentManaBar" inherits="TextStatusBar">
+                <Size x="46" y="7"/>
+                <Anchors>
+                    <Anchor point="TOPRIGHT" x="-2" y="-23"/>
+                </Anchors>
+                <BarTexture file="Interface\TargetingFrame\UI-StatusBar"/>
+                <BarColor r="0" g="0" b="1.0"/>
+            </StatusBar>
+            <Frame name="$parentDebuff1" inherits="TargetofTargetDebuffFrameTemplate" id="1">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="4" y="-10"/>
+                </Anchors>
+            </Frame>
+            <Frame name="$parentDebuff2" inherits="TargetofTargetDebuffFrameTemplate" id="2">
+                <Anchors>
+                    <Anchor point="LEFT" relativeTo="$parentDebuff1" relativePoint="RIGHT" x="1" y="0"/>
+                </Anchors>
+            </Frame>
+            <Frame name="$parentDebuff3" inherits="TargetofTargetDebuffFrameTemplate" id="3">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="$parentDebuff1" relativePoint="BOTTOMLEFT" x="0" y="-1"/>
+                </Anchors>
+            </Frame>
+            <Frame name="$parentDebuff4" inherits="TargetofTargetDebuffFrameTemplate" id="4">
+                <Anchors>
+                    <Anchor point="LEFT" relativeTo="$parentDebuff3" relativePoint="RIGHT" x="1" y="0"/>
+                </Anchors>
+            </Frame>
+        </Frames>
+        <Scripts>
+            <OnShow>
+                TargetFrame_UpdateAuras(self:GetParent());
+            </OnShow>
+            <OnHide function="TargetofTarget_OnHide"/>
+            <OnEvent function="UnitFrame_OnEvent"/>
+        </Scripts>
+    </Button>
+
+    <!-- based on TargetFrame -->
+    <Button name="MouseoverFrame" inherits="MouseoverFrameTemplate">
+        <Frames>
+            <!--  based on TargetFrame_CreateTargetofTarget -->
+            <Button name="MouseoverFrameToT" parentKey="totFrame" inherits="MouseoverTargetFrameTemplate">
+                <Scripts>
+                    <OnLoad>
+                        UnitFrame_Initialize(self, "mouseovertarget", _G[self:GetName().."TextureFrameName"], _G[self:GetName().."Portrait"],
+                            _G[self:GetName().."HealthBar"], nil,
+                            _G[self:GetName().."ManaBar"], nil);
+                        UnitFrameManaBar_Initialize("mouseovertarget", _G[self:GetName().."ManaBar"], nil, true) -- init with frequentUpdates
+                        SetTextStatusBarTextZeroText(self.healthbar, DEAD);
+                        self.deadText = _G[self:GetName().."TextureFrameDeadText"];
+                        self.unconsciousText = _G[self:GetName().."TextureFrameUnconsciousText"];
+                    </OnLoad>
+                </Scripts>
+            </Button>
+        </Frames>
+        <Scripts>
+            <OnLoad>
+                self.noTextPrefix = true;
+                self.showLevel = true;
+                self.showPVP = true;
+                self.showLeader = true;
+                self.showPortrait = true;
+                self.showClassification = true;
+                self.showAuraCount = true;
+                self.showThreat = true -- needs to be set otherwise the threatIndicator is missing for Updates
+                TargetFrame_OnLoad(self, "mouseover")
+                TargetFrame_CreateSpellbar(self, "UPDATE_MOUSEOVER_UNIT")
+
+                UnitFrameManaBar_Initialize("mouseover", _G["MouseoverFrameManaBar"], _G["MouseoverFrameTextureFrameManaBarText"], true)
+
+                self:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
+
+                self:HookScript("OnEvent", function(self, event, ...)
+                    if event == "UPDATE_MOUSEOVER_UNIT" then
+                        TargetFrame_Update(self);
+                        TargetFrame_UpdateRaidTargetIcon(self);
+                    end
+                end)
+            </OnLoad>
+        </Scripts>
+    </Button>
+</Ui>
