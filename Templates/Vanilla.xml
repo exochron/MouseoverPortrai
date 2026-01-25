@@ -305,7 +305,7 @@
                 self.showPortrait = true;
                 self.showClassification = true;
                 self.showAuraCount = true;
-                self.showThreat = true -- needs to be set otherwise the threatIndicator is missing for Updates
+                self:SetHitRectInsets(96, 40, 10, 9);		-- allows mouseover over health and mana bars
                 TargetFrame_OnLoad(self, "mouseover")
                 TargetFrame_CreateSpellbar(self, "UPDATE_MOUSEOVER_UNIT")
 

@@ -144,6 +144,10 @@
                                 <Anchor point="CENTER" relativePoint="RIGHT" x="-44" y="10"/>
                             </Anchors>
                         </Texture>
+					</Layer>
+					<Layer level="ARTWORK" textureSubLevel="1">
+						<Texture parentKey="overAbsorbGlow" inherits="OverAbsorbGlowTemplate" hidden="1"/>
+						<Texture parentKey="overHealAbsorbGlow" inherits="OverHealAbsorbGlowTemplate" hidden="1"/>
                     </Layer>
                     <Layer level="ARTWORK" textureSubLevel="1">
                         <Texture name="$parentPrestigeBadge" hidden="true">
@@ -160,6 +164,12 @@
                 <Anchors>
                     <Anchor point="TOPRIGHT" x="-106" y="-41"/>
                 </Anchors>
+				<Frames>
+					<Frame parentKey="MyHealPredictionBar" inherits="TargetFrameBarSegmentTemplate, MyHealPredictionBarTemplate"/>
+					<Frame parentKey="OtherHealPredictionBar" inherits="TargetFrameBarSegmentTemplate, OtherHealPredictionBarTemplate"/>
+					<Frame parentKey="HealAbsorbBar" inherits="PlayerFrameBarSegmentTemplate, HealAbsorbBarTemplate"/>
+					<Frame parentKey="TotalAbsorbBar" inherits="PlayerFrameBarSegmentTemplate, TotalAbsorbBarTemplate"/>
+				</Frames>
                 <Scripts>
                     <OnLoad>
                         TextStatusBar_Initialize(self);
@@ -172,6 +182,9 @@
                         UnitFrameHealthBar_OnValueChanged(self, value);
                         TargetHealthCheck(self, value);
                     </OnValueChanged>
+					<OnSizeChanged>
+						UnitFrameHealPredictionBars_UpdateSize(self:GetParent());
+					</OnSizeChanged>
                 </Scripts>
                 <BarTexture file="Interface\TargetingFrame\UI-StatusBar"/>
             </StatusBar>
@@ -344,6 +357,16 @@
     <!-- based on TargetFrame -->
     <Button name="MouseoverFrame" inherits="MouseoverFrameTemplate">
         <Frames>
+            <Frame name="$parentPowerBarAlt" parentKey="powerBarAlt" inherits="UnitPowerBarAltTemplate">
+                <Anchors>
+                    <Anchor point="LEFT" relativeTo="$parent" relativePoint="RIGHT" x="-25" y="5"/>
+                </Anchors>
+                <Scripts>
+                    <OnLoad>
+                        UnitPowerBarAlt_Initialize(self, "mouseover", 0.5, "UPDATE_MOUSEOVER_UNIT");
+                    </OnLoad>
+                </Scripts>
+            </Frame>
             <!--  based on TargetFrame_CreateTargetofTarget -->
             <Button name="MouseoverFrameToT" parentKey="totFrame" inherits="MouseoverTargetFrameTemplate">
                 <Scripts>
@@ -365,10 +388,11 @@
                 self.showLevel = true;
                 self.showPVP = true;
                 self.showLeader = true;
+                self.showThreat = true;
                 self.showPortrait = true;
                 self.showClassification = true;
                 self.showAuraCount = true;
-                self.showThreat = true -- needs to be set otherwise the threatIndicator is missing for Updates
+                self:SetHitRectInsets(96, 40, 10, 9);		-- allows mouseover over health and mana bars
                 TargetFrame_OnLoad(self, "mouseover")
                 TargetFrame_CreateSpellbar(self, "UPDATE_MOUSEOVER_UNIT")
 
