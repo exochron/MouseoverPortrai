@@ -1,4 +1,4 @@
-## Interface: 50503
+## Interface: 50503, 11508
 ## Title: Mouseover Portrai
 ## Notes: Additional unit frame for mouseover units, similar to the default target or focus frame
 ## Author: eXochron, lqpbgjuc
@@ -7,7 +7,8 @@
 ## X-Curse-Project-ID: 88398
 ## X-Wago-ID: J96Eav6g
 
-Templates\Classic.xml [AllowLoadGameType classic]
+Templates\Classic.xml [AllowLoadGameType mists]
+Templates\Vanilla.xml [AllowLoadGameType vanilla]
 Locals.lua
 MouseoverPortrai.lua
 SlashCommand.lua
