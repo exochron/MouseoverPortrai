@@ -260,12 +260,7 @@ frame:SetScript("OnEvent", function(_, event)
         -- CVarCallbackRegistry caches an therefore transports taint into the original TargetFrame
         hooksecurefunc(CVarCallbackRegistry, "GetCVarValue", function(self, cvar)
             if cvar == "showTargetOfTarget" and not issecurevariable(self.cvarValueCache, cvar) then
-                if self.ClearCache then
-                    self:ClearCache(cvar)
-                else -- classic
-                    local data = {textures = self.cvarValueCache}
-                    TextureLoadingGroupMixin.RemoveTexture(data, cvar)
-                end
+                self:ClearCache(cvar)
             end
         end)
     elseif event == "PLAYER_REGEN_DISABLED" then
